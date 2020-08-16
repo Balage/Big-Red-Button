@@ -54,7 +54,8 @@
 //
 // BUTTON BEHAVIOR
 //
-void buttonEvent(int selectedProgram,
+void buttonEvent(
+  int selectedProgram,
   bool pressed, bool released, bool shortReleased,
   bool singleClick, bool doubleClick, bool longPressed, bool longDoubleClick)
 {
@@ -110,7 +111,8 @@ int _lastProgram;
 bool _progSwitchState1 = false;
 bool _progSwitchState2 = false;
 
-void setup() {
+void setup()
+{
   pinMode(IO_BUTTON, INPUT);
   pinMode(IO_SWITCH_1, INPUT);
   pinMode(IO_SWITCH_2, INPUT);
@@ -120,11 +122,10 @@ void setup() {
   digitalWrite(IO_LIGHT, HIGH);
   _lastProgram = readProgramSwitch();
   _lastTimestamp = millis();
-
-  Serial.begin(9600);
 }
 
-bool schmittRead(int pin, bool lastState) {
+bool schmittRead(int pin, bool lastState)
+{
   // (Note that the value will be inverse because of the pull-up resistor)
   int value = analogRead(pin);
 
@@ -142,7 +143,8 @@ int readProgramSwitch()
   return (_progSwitchState1 ? 1 : 0) | (_progSwitchState2 ? 2 : 0);
 }
 
-void loop() {
+void loop()
+{
   unsigned long timestamp = millis();
   unsigned long delta_i = timestamp - _lastTimestamp;
   
@@ -157,7 +159,8 @@ void loop() {
   }
 }
 
-int getAndUpdateProgram() {
+int getAndUpdateProgram()
+{
   int program = readProgramSwitch();
   if (program != _lastProgram)
   {
@@ -192,11 +195,13 @@ void updateButton(int program)
   bool buttonLongPressed = !_longPressFired && buttonState && _longPressStarted + LONG_PRESS_TIME < millis();
   bool buttonLongDoubleClick = false;
   
-  if (buttonLongPressed) {
+  if (buttonLongPressed)
+  {
     _longPressFired = true;
     _doubleClickInProgress = false;
 
-    if (_nextReleaseIsDoubleClick) {
+    if (_nextReleaseIsDoubleClick)
+    {
       buttonLongPressed = false;
       buttonLongDoubleClick = true;
     }
@@ -209,37 +214,48 @@ void updateButton(int program)
   unsigned long doubleClickDelta = timestamp - _doubleClickStarted;
   bool withinDoubleClickTime = doubleClickDelta <= DOUBLE_CLICK_TIME;
   
-  if (_doubleClickInProgress) {
-    if (withinDoubleClickTime) {
-      if (buttonPressed) {
+  if (_doubleClickInProgress)
+  {
+    if (withinDoubleClickTime)
+    {
+      if (buttonPressed)
+      {
         // mark double click
         _nextReleaseIsDoubleClick = true;
       }                                                                              
-    } else {
-      if (!buttonState && !_nextReleaseIsDoubleClick) {
+    }
+    else
+    {
+      if (!buttonState && !_nextReleaseIsDoubleClick)
+      {
         // single click
         buttonSingleClick = true;
         _doubleClickInProgress = false;
       }
     }
-    
-  } else {
-    if (buttonPressed) {
+  }
+  else
+  {
+    if (buttonPressed)
+    {
       _doubleClickStarted = timestamp;
       _doubleClickInProgress = true;
       _nextReleaseIsDoubleClick = false;
     }
   }
 
-  if (_doubleClickInProgress && buttonReleased && _nextReleaseIsDoubleClick) {
+  if (_doubleClickInProgress && buttonReleased && _nextReleaseIsDoubleClick)
+  {
     // double click
     buttonDoubleClick = true;
     _doubleClickInProgress = false;
   }
   
-  buttonEvent(program,
+  buttonEvent(
+    program,
     buttonPressed, buttonReleased, buttonShortReleased,
-    buttonSingleClick, buttonDoubleClick, buttonLongPressed, buttonLongDoubleClick);
+    buttonSingleClick, buttonDoubleClick, buttonLongPressed, buttonLongDoubleClick
+  );
   
   _buttonLastState = buttonState;
 }
