@@ -1,0 +1,25 @@
+#######################################
+# Syntax Coloring Map For Keyboard
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Keyboard	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+HoldKey	KEYWORD2
+ReleaseKey	KEYWORD2
+PressKey	KEYWORD2
+PressKeyPage1	KEYWORD2
+GetLedState	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+KB_LED_SCROLL	LITERAL1
