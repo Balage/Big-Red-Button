@@ -28,13 +28,11 @@ The relevant part of the code is all placed in the beginning of the sketch with 
 The Keyboard class specifies separate function calls for page 0x01 and page 0x07 keys.
 Constants for the most common key codes, and modifier keys are defined in `VbsKeyboard.h`.
 
-### Page 0x07 key calls
-These are for the regular keys.
-
+### Page 0x07 key calls (regular keys)
 ``` c++
 Keyboard.PressKey(uint8_t key, uint8_t modifier = MOD_NONE)
 ```
-Issues a key press and then immediately a key release for the specified `key`. One or multiple `modifier`-s can specified to be pressed with the key, like Ctrl, Alt, Shift or GUI (Window key).
+Issues a key press and then immediately a release for the specified `key`. One or multiple `modifier`-s can specified to be pressed with the key, like Ctrl, Alt, Shift or GUI (Window key).
 
 ``` c++
 Keyboard.HoldKey(uint8_t key, uint8_t modifier = MOD_NONE)
@@ -46,13 +44,11 @@ Keyboard.ReleaseKey()
 ```
 Release all currently pressed (page 0x07) keys.
 
-### Page 0x01 key calls
-These are mainly system and media keys.
-
+### Page 0x01 key calls (system and media keys)
 ``` c++
 Keyboard.PressKeyPage1(uint16_t key)
 ```
-Issues a key press and then immediately a key release for the specified `key`.
+Issues a key press and then immediately a release for the specified `key`.
 
 ## License
 MIT
