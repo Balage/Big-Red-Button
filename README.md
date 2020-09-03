@@ -8,7 +8,7 @@ The intention with this library was to build a big red button that acts like a k
 
 The button can also be used to host quiz shows (given you have more than one button).
 
-### How to install code
+## How to install code
 - The Arduino IDE by default stores all Sketches in a folder named "Arduino" in your Documents folder.
 - Download the repository and copy everything from the "Source Code" folder to there.
 -- It might ask whether you want to merge the "libraries" folder with the new one, choose yes.
@@ -16,7 +16,7 @@ The button can also be used to host quiz shows (given you have more than one but
 
 The relevant part of the code is all placed in the beginning of the sketch with some expanations. There you can change and tweak behavior, or switch I/O pins.
 
-### Build and upload sketch
+## Build and upload sketch
 - After the Leonardo board is plugged in, go to "Tools", "Board", then select "Arduino Leonardo".
 - Go to "Tools", "Port", and select the port that looks like "COM# (Arduino Leonardo)".
 - Press and hold the reset button on the Leonardo board. (Add one if it does not have it)
@@ -24,5 +24,35 @@ The relevant part of the code is all placed in the beginning of the sketch with 
 - As soon as the console at the bottom says "Uploading...", release the reset button.
 - It should finish in a few seconds, and then done.
 
-### License
+## Changing keys
+The Keyboard class specifies separate function calls for page 0x01 and page 0x07 keys.
+Constants for the most common key codes, and modifier keys are defined in `VbsKeyboard.h`.
+
+### Page 0x07 key calls
+These are for the regular keys.
+
+``` c++
+Keyboard.PressKey(uint8_t key, uint8_t modifier = MOD_NONE)
+```
+Issues a key press and then immediately a key release for the specified `key`. One or multiple `modifier`-s can specified to be pressed with the key, like Ctrl, Alt, Shift or GUI (Window key).
+
+``` c++
+Keyboard.HoldKey(uint8_t key, uint8_t modifier = MOD_NONE)
+```
+Same as `PressKey()`, except the key remains pressed until `ReleaseKey()` is called.
+
+``` c++
+Keyboard.ReleaseKey()
+```
+Release all currently pressed (page 0x07) keys.
+
+### Page 0x01 key calls
+These are mainly system and media keys.
+
+``` c++
+Keyboard.PressKeyPage1(uint16_t key)
+```
+Issues a key press and then immediately a key release for the specified `key`.
+
+## License
 MIT
