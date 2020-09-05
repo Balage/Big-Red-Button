@@ -8,10 +8,12 @@ The intention with this library was to build a big red button that acts like a k
 
 The button can also be used to host quiz shows (given you have more than one button).
 
+To read about the hardware part of the project, visit my [article](https://vbstudio.hu/blog/20200905-A-Big-Red-Button-Acting-as-a-Keyboard-Using-Arduino).
+
 ## How to install code
 - The Arduino IDE by default stores all Sketches in a folder named "Arduino" in your Documents folder.
 - Download the repository and copy everything from the "Source Code" folder to there.
--- It might ask whether you want to merge the "libraries" folder with the new one, choose yes.
+	- It might ask whether you want to merge the "libraries" folder with the new one, choose yes.
 - Start the Arduino IDE and select "File", "Sketches", and then choose "BigRedButton" from the list.
 
 The relevant part of the code is all placed in the beginning of the sketch with some expanations. There you can change and tweak behavior, or switch I/O pins.
@@ -25,24 +27,24 @@ The relevant part of the code is all placed in the beginning of the sketch with 
 - It should finish in a few seconds, and then done.
 
 ## Changing keys
-The Keyboard class specifies separate function calls for page 0x01 and page 0x07 keys.
-Constants for the most common key codes, and modifier keys are defined in `VbsKeyboard.h`.
+The `Keyboard` class specifies separate function calls for **page 0x01** and **page 0x07** keys.
+Constants for the most common key codes and modifier keys are defined in `VbsKeyboard.h`.
 
 ### Page 0x07 key calls (regular keys)
 ``` c++
 Keyboard.PressKey(uint8_t key, uint8_t modifier = MOD_NONE)
 ```
-Issues a key press and then immediately a release for the specified `key`. One or multiple `modifier`-s can specified to be pressed with the key, like Ctrl, Alt, Shift or GUI (Window key).
+Issues a key press and then immediately a release for the specified `key`. One or multiple `modifier`-s can be specified to be pressed along with the key, like Ctrl, Alt, Shift or GUI (Window key).
 
 ``` c++
 Keyboard.HoldKey(uint8_t key, uint8_t modifier = MOD_NONE)
 ```
-Same as `PressKey()`, except the key remains pressed until `ReleaseKey()` is called.
+Same as `PressKey()`, except the key and modifiers remains pressed until `ReleaseKey()` is called.
 
 ``` c++
 Keyboard.ReleaseKey()
 ```
-Release all currently pressed (page 0x07) keys.
+Releases all currently pressed (page 0x07) keys.
 
 ### Page 0x01 key calls (system and media keys)
 ``` c++
