@@ -1,29 +1,30 @@
 
 /*
     MIT License
-
+    
     Copyright (c) 2020, Balazs Vecsey, www.vbstudio.hu
-
+    
     Permission is hereby granted, free of charge, to any person obtaining a copy of
     this software and associated documentation files (the "Software"), to deal in the
     Software without restriction, including without limitation the rights to use,
     copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
     Software, and to permit persons to whom the Software is furnished to do so,
     subject to the following conditions:
-
+    
     The above copyright notice and this permission notice shall be included in all
     copies or substantial portions of the Software.
-
+       
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
     FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
     COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
     AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+    
     v1.1
     - Fixed Schmitt trigger to be symmetrical
-
+    - Removed Schmitt trigger from swithes
+    
     v1.0
     - Initial version
 */
@@ -33,14 +34,16 @@
 //
 // PIN CONFIGURATION
 //
-// The button and the switches must be connected to
-// analog pins for the Schmitt trigger to work
+// The button must be connected to analog (A1 - A6) pins
+// for the Schmitt trigger to work
 #define IO_BUTTON A0
+
+// The swithes can be connected to any I/O pin
 #define IO_SWITCH_1 A2
 #define IO_SWITCH_2 A1
 
-// The LED must be on a PWM pin, on the
-// Arduino Leonardo (MEGA32U4) these are: 3, 5, 6, 9, 10
+// The LED must be on a PWM pin,
+// on the Arduino Leonardo (MEGA32U4) these are: D3, D5, D6, D9, D10
 #define IO_LIGHT 9
 
 //
@@ -52,7 +55,7 @@
 // This is the time frame under which it registers as double click (in milliseconds)
 #define DOUBLE_CLICK_TIME 300
 
-// Speed of the LED brightness transition, bigger value = faster
+// Speed of the LED brightness transition, bigger value -> faster transition
 #define LED_CHANGE_SPEED 20.0f
 
 //
@@ -112,8 +115,6 @@ bool _longPressFired = false;
 bool _buttonLastState = false;
 float _ledBrightness = 0.0f;
 int _lastProgram;
-bool _progSwitchState1 = false;
-bool _progSwitchState2 = false;
 
 void setup()
 {
@@ -141,10 +142,9 @@ bool schmittRead(int pin, bool lastState)
 
 int readProgramSwitch()
 {
-    _progSwitchState1 = schmittRead(IO_SWITCH_1, _progSwitchState1);
-    _progSwitchState2 = schmittRead(IO_SWITCH_2, _progSwitchState2);
-
-    return (_progSwitchState1 ? 1 : 0) | (_progSwitchState2 ? 2 : 0);
+    return (
+        (digitalRead(IO_SWITCH_1) ? 0 : 1) |
+        (digitalRead(IO_SWITCH_2) ? 0 : 2));
 }
 
 void loop()
