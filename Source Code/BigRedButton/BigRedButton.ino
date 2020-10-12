@@ -20,6 +20,9 @@
   AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
   WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+  v1.1
+  - Fixed Schmitt trigger to be symmetrical
+
   v1.0
   - Initial version
 */
@@ -130,8 +133,8 @@ bool schmittRead(int pin, bool lastState)
   int value = analogRead(pin);
 
   // Schmitt trigger
-  if (lastState && value >= 256) return false;
-  if (!lastState && value < 128) return true;
+  if (lastState && value >= 768) return false;
+  if (!lastState && value < 256) return true;
   return lastState;
 }
 
