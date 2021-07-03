@@ -11,6 +11,7 @@ The button can also be used to host quiz shows (given you have more than one but
 To read about the hardware part of the project, visit my [article](https://vbstudio.hu/blog/20200905-A-Big-Red-Button-Acting-as-a-Keyboard-Using-Arduino).
 
 ## How to install code
+- Download and install the [Arduino IDE](https://www.arduino.cc/en/software).
 - The Arduino IDE by default stores all Sketches in a folder named "Arduino" in your Documents folder.
 - Download the repository and copy everything from the "Source Code" folder to there.
 	- It might ask whether you want to merge the "libraries" folder with the new one, choose yes.
