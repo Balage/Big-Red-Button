@@ -1,4 +1,3 @@
-
 /*
     MIT License
     
@@ -20,6 +19,10 @@
     COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
     AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+    v1.2
+    - Added F1-F12 key definitions
+    - Added use-case example for GeForce Experience screenshot/recording
     
     v1.1
     - Fixed Schmitt trigger to be symmetrical
@@ -96,6 +99,15 @@ void buttonEvent(
             if (longPressed) Keyboard.PressKeyPage1(KEY1_SYSTEM_SLEEP);
             break;
     }
+
+    // Other potential use-cases.
+    // Overwrite one of the existing programs with these:
+
+    /* [GeForce Experience screenshot/recording]
+        // Short press to take screenshot, long press to start/stop video recording
+        if (shortReleased) Keyboard.PressKey(KEY_F1, MOD_LEFT_ALT);
+        if (longPressed) Keyboard.PressKey(KEY_F9, MOD_LEFT_ALT);
+    */
 }
 
 

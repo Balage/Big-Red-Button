@@ -276,7 +276,7 @@ void VbsKeyboard_::HoldKey(uint8_t key, uint8_t modifier)
 
 bool VbsKeyboard_::GetLedState(uint8_t mask) const
 {
-	return _ledsState & KB_LED_SCROLL;
+	return _ledsState & mask;
 }
 
 
