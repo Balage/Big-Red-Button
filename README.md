@@ -53,5 +53,22 @@ Keyboard.PressKeyPage1(uint16_t key)
 ```
 Issues a key press and then immediately a release for the specified `key`.
 
+## More use-case examples
+Overwrite any of the preset programs with these.
+
+### GeForce Experience screenshot/recording
+Short press to take screenshot, long press to start/stop video recording.
+``` c++
+if (shortReleased) Keyboard.PressKey(KEY_F1, MOD_LEFT_ALT);
+if (longPressed) Keyboard.PressKey(KEY_F9, MOD_LEFT_ALT);
+```
+
+### Xbox Game Bar screenshot/recording
+Short press to take screenshot, long press to start/stop video recording.
+``` c++
+if (shortReleased) Keyboard.PressKey(KEY_PRINT_SCREEN, MOD_LEFT_GUI | MOD_LEFT_ALT);
+if (longPressed) Keyboard.PressKey(KEY_R, MOD_LEFT_GUI | MOD_LEFT_ALT);
+```
+
 ## License
 MIT
