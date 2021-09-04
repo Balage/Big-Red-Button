@@ -21,8 +21,10 @@
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     v1.2
-    - Added F1-F12 key definitions
-    - Added use-case example for GeForce Experience screenshot/recording
+    - Added LED brightness constant
+    - Added pulsing effect to LED when activated with Scroll Lock
+    - Increased double click duration to 400ms
+    - Decreased long press time to 700ms
     
     v1.1
     - Fixed Schmitt trigger to be symmetrical
@@ -53,13 +55,23 @@
 // TIMING
 //
 // This is how long the button must be held to register a long press (in milliseconds)
-#define LONG_PRESS_TIME 750
+const float LONG_PRESS_TIME = 700;
 
 // This is the time frame under which it registers as double click (in milliseconds)
-#define DOUBLE_CLICK_TIME 300
+const float DOUBLE_CLICK_TIME = 400;
 
 // Speed of the LED brightness transition, bigger value -> faster transition
-#define LED_CHANGE_SPEED 20.0f
+const float LED_CHANGE_SPEED = 25.0f;
+
+// LED maximum brightness (float value between 0.0f and 1.0f)
+const float LED_BRIGHTNESS = 1.0f;
+
+// Enable pulsing for LED when Scroll Lock is active
+const float LED_ENABLE_PULSING = true;
+
+// LED pulsing frequency (0.07-0.16 Hz imitates slow breathing)
+const float LED_PULSE_FREQ = 0.12f; // Hz
+
 
 //
 // BUTTON BEHAVIOR
@@ -99,15 +111,6 @@ void buttonEvent(
             if (longPressed) Keyboard.PressKeyPage1(KEY1_SYSTEM_SLEEP);
             break;
     }
-
-    // Other potential use-cases.
-    // Overwrite one of the existing programs with these:
-
-    /* [GeForce Experience screenshot/recording]
-        // Short press to take screenshot, long press to start/stop video recording
-        if (shortReleased) Keyboard.PressKey(KEY_F1, MOD_LEFT_ALT);
-        if (longPressed) Keyboard.PressKey(KEY_F9, MOD_LEFT_ALT);
-    */
 }
 
 
@@ -126,6 +129,7 @@ bool _nextReleaseIsDoubleClick = false;
 bool _longPressFired = false;
 bool _buttonLastState = false;
 float _ledBrightness = 0.0f;
+float _ledPulseTime = 0.0f;
 int _lastProgram;
 
 void setup()
@@ -279,10 +283,19 @@ void updateButton(int program)
 void updateLED(float delta)
 {
     bool scrollLedState = Keyboard.GetLedState(KB_LED_SCROLL);
-    float ledNewBrightness = scrollLedState || _buttonLastState ? 255.0f : 0.0f;
-
+    float ledNewBrightness = scrollLedState || _buttonLastState ? 1.0f : 0.0f;
+    
+    // Imitate thermal inertia
     float chageSpeed = delta * LED_CHANGE_SPEED;
     _ledBrightness = (chageSpeed * ledNewBrightness) + ((1.0f - chageSpeed) * _ledBrightness);
 
-    analogWrite(IO_LIGHT, 255 - (int)_ledBrightness);
+    // Add breathing-like pulsing
+    _ledPulseTime = fmod(_ledPulseTime + delta, 1.0f / LED_PULSE_FREQ);
+    if (LED_ENABLE_PULSING && scrollLedState && !_buttonLastState)
+    {
+        float pulseBrightness = sin(_ledPulseTime * LED_PULSE_FREQ * PI * 2.0f) * 0.5f + 0.5f;
+        _ledBrightness *= pulseBrightness * 0.1f + 0.9f;
+    }
+
+    analogWrite(IO_LIGHT, 255 - (int)(_ledBrightness * LED_BRIGHTNESS * 255.0f));
 }
