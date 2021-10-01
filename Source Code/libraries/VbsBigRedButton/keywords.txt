@@ -1,0 +1,24 @@
+#######################################
+# Syntax Coloring Map For Keyboard
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+BigRedButton	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+SetLongPressTime	KEYWORD2
+SetDoubleClickTime	KEYWORD2
+SetLightChangeSpeed	KEYWORD2
+SetLightMaxBrightness	KEYWORD2
+SetLightPulse	KEYWORD2
+KeepLightLit	KEYWORD2
+GetProgramIndex	KEYWORD2
+PollSingleButtonEvent	KEYWORD2
+PollDualButtonEvent	KEYWORD2
+PollQuadButtonEvent	KEYWORD2

@@ -100,9 +100,9 @@ public:
 // Keyboard
 // ----------------------------------------------
 // LEDs
-#define KB_LED_NUM       0x01
-#define KB_LED_CAPS      0x02
-#define KB_LED_SCROLL    0x04
+#define KB_LED_NUM_LOCK     0x01
+#define KB_LED_CAPS_LOCK    0x02
+#define KB_LED_SCROLL_LOCK  0x04
 
 // Modifiers (page 7)
 #define MOD_NONE         0x00

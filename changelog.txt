@@ -1,0 +1,17 @@
+v2.0
+- Moved all "under the hood" parts into a separate class to make top-level code simpler.
+- Added pulse size option.
+- Completely separated simple, dual and quad button event handling and polling.
+
+v1.2
+- Added LED brightness constant.
+- Added pulsing effect to LED when activated with Scroll Lock.
+- Increased double click duration to 400ms.
+- Decreased long press time to 700ms.
+
+v1.1
+- Fixed Schmitt trigger to be symmetrical.
+- Removed Schmitt trigger from swithes.
+
+v1.0
+- Initial version.

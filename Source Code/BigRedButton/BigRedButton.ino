@@ -1,7 +1,7 @@
 /*
     MIT License
     
-    Copyright (c) 2020, Balazs Vecsey, www.vbstudio.hu
+    Copyright (c) 2021, Balazs Vecsey, www.vbstudio.hu
     
     Permission is hereby granted, free of charge, to any person obtaining a copy of
     this software and associated documentation files (the "Software"), to deal in the
@@ -19,283 +19,92 @@
     COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
     AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
     WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-    v1.2
-    - Added LED brightness constant
-    - Added pulsing effect to LED when activated with Scroll Lock
-    - Increased double click duration to 400ms
-    - Decreased long press time to 700ms
-    
-    v1.1
-    - Fixed Schmitt trigger to be symmetrical
-    - Removed Schmitt trigger from swithes
-    
-    v1.0
-    - Initial version
 */
 
-#include <VbsKeyboard.h>
 
 //
 // PIN CONFIGURATION
 //
-// The button must be connected to analog (A1 - A6) pins
-// for the Schmitt trigger to work
+// The button must be connected to an analog (A1 - A6) pin for the Schmitt trigger to work
 #define IO_BUTTON A0
 
 // The swithes can be connected to any I/O pin
 #define IO_SWITCH_1 A2
 #define IO_SWITCH_2 A1
 
-// The LED must be on a PWM pin,
-// on the Arduino Leonardo (MEGA32U4) these are: D3, D5, D6, D9, D10
+// The LED must be on a PWM pin, on the Arduino Leonardo (MEGA32U4) these are: D3, D5, D6, D9, D10
 #define IO_LIGHT 9
 
+#include <VbsBigRedButton.h>
+VbsBigRedButton BigRedButton(IO_BUTTON, IO_LIGHT, IO_SWITCH_1, IO_SWITCH_2);
+
+
 //
-// TIMING
+// TIMING AND LED BEHAVIOR
 //
-// This is how long the button must be held to register a long press (in milliseconds)
-const float LONG_PRESS_TIME = 700;
-
-// This is the time frame under which it registers as double click (in milliseconds)
-const float DOUBLE_CLICK_TIME = 400;
-
-// Speed of the LED brightness transition, bigger value -> faster transition
-const float LED_CHANGE_SPEED = 25.0f;
-
-// LED maximum brightness (float value between 0.0f and 1.0f)
-const float LED_BRIGHTNESS = 1.0f;
-
-// Enable pulsing for LED when Scroll Lock is active
-const float LED_ENABLE_PULSING = true;
-
-// LED pulsing frequency (0.07-0.16 Hz imitates slow breathing)
-const float LED_PULSE_FREQ = 0.12f; // Hz
+void setup()
+{
+    // This is how long the button must be held to register a long press (in milliseconds).
+    BigRedButton.SetLongPressTime(700);
+    
+    // This is the time frame under which it registers as double click (in milliseconds).
+    BigRedButton.SetDoubleClickTime(400);
+    
+    // Speed of the LED brightness transition, bigger value -> faster transition.
+    BigRedButton.SetLightChangeSpeed(25.0f);
+    
+    // LED maximum brightness (float value between 0.0f and 1.0f).
+    BigRedButton.SetLightMaxBrightness(1.0f);
+    
+    // Light pulse frequency and size (% between 0.0f and 1.0f), when LED is kept lit.
+    // Set frequency to 0.0f to disable.
+    BigRedButton.SetLightPulse(0.5f, 0.75f);
+}
 
 
 //
 // BUTTON BEHAVIOR
 //
-void buttonEvent(
-    int selectedProgram,
-    bool pressed, bool released, bool shortReleased,
-    bool singleClick, bool doubleClick, bool longPressed, bool longDoubleClick)
-{
-    // All inputs are events and fired only once.
-    // They are paired into 3 groups, and each program should only rely on one group.
-    // Group #1: [ pressed, released ]
-    // Group #2: [ shortReleased, longPressed ]
-    // Group #3: [ singleClick, doubleClick, longPressed, longDoubleClick ]
-
-    switch (selectedProgram)
-    {
-        case 0:
-            if (pressed) Keyboard.HoldKey(KEY_ENTER);
-            if (released) Keyboard.ReleaseKey();
-            break;
-
-        case 1:
-            if (pressed) Keyboard.HoldKey(KEY_SPACE);
-            if (released) Keyboard.ReleaseKey();
-            break;
-
-        case 2:
-            if (singleClick) Keyboard.PressKey(KEY_F13);
-            if (doubleClick) Keyboard.PressKey(KEY_F14);
-            if (longPressed) Keyboard.PressKey(KEY_F15);
-            if (longDoubleClick) Keyboard.PressKey(KEY_F16);
-            break;
-
-        case 3:
-            if (shortReleased) Keyboard.PressKey(KEY_L, MOD_LEFT_GUI);
-            if (longPressed) Keyboard.PressKeyPage1(KEY1_SYSTEM_SLEEP);
-            break;
-    }
-}
-
-
-//
-// If you only wish to change keys, add macros and tweak timing, scroll no further!
-// After this point starts the "under the hood" section.
-//
-
-
-// Global variables
-unsigned long _lastTimestamp;
-unsigned long _longPressStarted = 0;
-unsigned long _doubleClickStarted = 0;
-bool _doubleClickInProgress = false;
-bool _nextReleaseIsDoubleClick = false;
-bool _longPressFired = false;
-bool _buttonLastState = false;
-float _ledBrightness = 0.0f;
-float _ledPulseTime = 0.0f;
-int _lastProgram;
-
-void setup()
-{
-    pinMode(IO_BUTTON, INPUT);
-    pinMode(IO_SWITCH_1, INPUT);
-    pinMode(IO_SWITCH_2, INPUT);
-    pinMode(IO_LIGHT, OUTPUT);
-
-    // Set default values
-    digitalWrite(IO_LIGHT, HIGH);
-    _lastProgram = readProgramSwitch();
-    _lastTimestamp = millis();
-}
-
-bool schmittRead(int pin, bool lastState)
-{
-    // (Note that the value will be inverse because of the pull-up resistor)
-    int value = analogRead(pin);
-
-    // Schmitt trigger
-    if (lastState && value >= 768) return false;
-    if (!lastState && value < 256) return true;
-    return lastState;
-}
-
-int readProgramSwitch()
-{
-    return (
-        (digitalRead(IO_SWITCH_1) ? 0 : 1) |
-        (digitalRead(IO_SWITCH_2) ? 0 : 2));
-}
-
 void loop()
 {
-    unsigned long timestamp = millis();
-    unsigned long delta_i = timestamp - _lastTimestamp;
+    // Keep LED lit when Scroll Lock key is active
+    BigRedButton.KeepLightLit(Keyboard.GetLedState(KB_LED_SCROLL_LOCK));
 
-    if (delta_i != 0)
+    switch (BigRedButton.GetProgramIndex())
     {
-        _lastTimestamp = timestamp;
-        float delta = delta_i / 1000.0f;
-
-        int program = getAndUpdateProgram();
-        updateButton(program);
-        updateLED(delta);
-    }
-}
-
-int getAndUpdateProgram()
-{
-    int program = readProgramSwitch();
-    if (program != _lastProgram)
-    {
-        // Avoid any keys getting stuck while changing program
-        Keyboard.ReleaseKey();
-        _lastProgram = program;
-    }
-    return program;
-}
-
-void updateButton(int program)
-{
-    unsigned long timestamp = millis();
-    bool buttonState = schmittRead(IO_BUTTON, _buttonLastState);
-
-    // Normal button press and release, both fired once
-    bool buttonPressed = buttonState && buttonState != _buttonLastState;
-    bool buttonReleased = !buttonState && buttonState != _buttonLastState;
-
-    // Button holding started
-    if (buttonPressed)
-    {
-        _longPressStarted = timestamp;
-        _longPressFired = false;
-    }
-
-    // Short release event, only if released before long press
-    bool buttonShortReleased = buttonReleased && !_longPressFired;
-
-    // Long press event, fires once while pressed if button is held for some time
-    // (release will not trigger short release event if long press has fired)
-    bool buttonLongPressed = !_longPressFired && buttonState && _longPressStarted + LONG_PRESS_TIME < millis();
-    bool buttonLongDoubleClick = false;
-
-    if (buttonLongPressed)
-    {
-        _longPressFired = true;
-        _doubleClickInProgress = false;
-
-        if (_nextReleaseIsDoubleClick)
+        case 0:
         {
-            buttonLongPressed = false;
-            buttonLongDoubleClick = true;
+            auto event = BigRedButton.PollSingleButtonEvent();
+            
+            if (event.Press) Keyboard.HoldKey(KEY_ENTER);
+            if (event.Release) Keyboard.ReleaseKey();
+            break;
+        }
+        case 1:
+        {
+            auto event = BigRedButton.PollSingleButtonEvent();
+            
+            if (event.Press) Keyboard.HoldKey(KEY_SPACE);
+            if (event.Release) Keyboard.ReleaseKey();
+            break;
+        }
+        case 2:
+        {
+            auto event = BigRedButton.PollQuadButtonEvent();
+            
+            if (event.SingleClick) Keyboard.PressKey(KEY_F13);
+            if (event.DoubleClick) Keyboard.PressKey(KEY_F14);
+            if (event.LongPress) Keyboard.PressKey(KEY_F15);
+            if (event.LongPressDoubleClick) Keyboard.PressKey(KEY_F16);
+            break;
+        }
+        case 3:
+        {
+            auto event = BigRedButton.PollDualButtonEvent();
+            
+            if (event.Click) Keyboard.PressKey(KEY_L, MOD_LEFT_GUI);
+            if (event.LongPress) Keyboard.PressKeyPage1(KEY1_SYSTEM_SLEEP);
+            break;
         }
     }
-
-    // Single/double click
-    bool buttonSingleClick = false;
-    bool buttonDoubleClick = false;
-
-    unsigned long doubleClickDelta = timestamp - _doubleClickStarted;
-    bool withinDoubleClickTime = doubleClickDelta <= DOUBLE_CLICK_TIME;
-
-    if (_doubleClickInProgress)
-    {
-        if (withinDoubleClickTime)
-        {
-            if (buttonPressed)
-            {
-                // mark double click
-                _nextReleaseIsDoubleClick = true;
-            }
-        }
-        else
-        {
-            if (!buttonState && !_nextReleaseIsDoubleClick)
-            {
-                // single click
-                buttonSingleClick = true;
-                _doubleClickInProgress = false;
-            }
-        }
-    }
-    else
-    {
-        if (buttonPressed)
-        {
-            _doubleClickStarted = timestamp;
-            _doubleClickInProgress = true;
-            _nextReleaseIsDoubleClick = false;
-        }
-    }
-
-    if (_doubleClickInProgress && buttonReleased && _nextReleaseIsDoubleClick)
-    {
-        // double click
-        buttonDoubleClick = true;
-        _doubleClickInProgress = false;
-    }
-
-    buttonEvent(
-        program,
-        buttonPressed, buttonReleased, buttonShortReleased,
-        buttonSingleClick, buttonDoubleClick, buttonLongPressed, buttonLongDoubleClick
-    );
-
-    _buttonLastState = buttonState;
-}
-
-void updateLED(float delta)
-{
-    bool scrollLedState = Keyboard.GetLedState(KB_LED_SCROLL);
-    float ledNewBrightness = scrollLedState || _buttonLastState ? 1.0f : 0.0f;
-    
-    // Imitate thermal inertia
-    float chageSpeed = delta * LED_CHANGE_SPEED;
-    _ledBrightness = (chageSpeed * ledNewBrightness) + ((1.0f - chageSpeed) * _ledBrightness);
-
-    // Add breathing-like pulsing
-    _ledPulseTime = fmod(_ledPulseTime + delta, 1.0f / LED_PULSE_FREQ);
-    if (LED_ENABLE_PULSING && scrollLedState && !_buttonLastState)
-    {
-        float pulseBrightness = sin(_ledPulseTime * LED_PULSE_FREQ * PI * 2.0f) * 0.5f + 0.5f;
-        _ledBrightness *= pulseBrightness * 0.1f + 0.9f;
-    }
-
-    analogWrite(IO_LIGHT, 255 - (int)(_ledBrightness * LED_BRIGHTNESS * 255.0f));
 }
