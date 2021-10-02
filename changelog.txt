@@ -1,7 +1,9 @@
 v2.0
 - Moved all "under the hood" parts into a separate class to make top-level code simpler.
-- Added pulse size option.
-- Completely separated simple, dual and quad button event handling and polling.
+- Added LED pulse size option.
+- Completely separated simple, dual and quad button event handling and polling to allow fine control over LED behavior.
+- Added flashing to indicate long press event.
+- Also added flashing to clicks when button is constantly lit.
 
 v1.2
 - Added LED brightness constant.

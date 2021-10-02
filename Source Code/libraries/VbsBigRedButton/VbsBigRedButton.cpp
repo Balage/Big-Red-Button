@@ -23,12 +23,12 @@
 
 #include "VbsBigRedButton.h"
 
-static int MinMax(int min, int max, int value)
+static int MinMax(const int min, const int max, const int value)
 {
 	return value < min ? min : (value > max ? max : value);
 }
 
-static float MinMax(float min, float max, float value)
+static float MinMax(const float min, const float max, const float value)
 {
 	return value < min ? min : (value > max ? max : value);
 }
@@ -77,44 +77,79 @@ void VbsBigRedButton::resetButtonState()
 	_doubleClickInProgress = false;
 	_nextReleaseIsDoubleClick = false;
 	_longPressFired = false;
+	
+	_lightOverride = LIGHT_FREE;
+	_lightFeedbackFlashRunning = false;
 }
 
 void VbsBigRedButton::updateLight()
 {
 	// Calculate delta time
 	const unsigned long timestamp = millis();
-	const float delta = (timestamp - _lastTimestamp) / 1000.0f;
+	const unsigned long delta_i = timestamp - _lastTimestamp;
 	
-	if (delta > 0.0f)
+	if (delta_i > 0)
 	{
+		const float delta = delta_i / 1000.0f;
 		_lastTimestamp = timestamp;
 		
-		// Determine desired brightness
-		float newBrightness = 0.0f;
-		if (_buttonLastState)
+		// Update feedback flashing
+		if (_lightFeedbackFlashRunning)
 		{
-			newBrightness = 1.0f;
-		}
-		else if (_lightKeepLit)
-		{
-			if (_lightPulseEnabled)
+			_lightFeedbackFlashTime += delta_i;
+			
+			// Sequence: (0)OFF, (1)ON, (2)OFF, (3)ON, (4+)FREE
+			const int timeframe = _lightFeedbackFlashTime / _lightFeedbackFlashSpeed;
+			if (timeframe >= 4)
 			{
-				_lightPulseTime = fmod(_lightPulseTime + delta, 1.0f / _lightPulseFreq);
-				float pulseBrightness = sin(_lightPulseTime * _lightPulseFreq * PI * 2.0f) * 0.5f + 0.5f;
-				newBrightness = pulseBrightness * _lightPulseSize + (1.0f - _lightPulseSize);
+				_lightFeedbackFlashRunning = false;
+				_lightOverride = LIGHT_FREE;
 			}
 			else
 			{
+				_lightOverride = timeframe == 1 || timeframe == 3 ? LIGHT_ON : LIGHT_OFF;
+			}
+		}
+		
+		// Determine desired brightness
+		float newBrightness = 0.0f;
+		if (_lightOverride != LIGHT_FREE)
+		{
+			newBrightness = _lightOverride == LIGHT_ON ? 1.0f : 0.0f;
+		}
+		else
+		{
+			if (_buttonLastState)
+			{
 				newBrightness = 1.0f;
+			}
+			else if (_lightKeepLit)
+			{
+				if (_lightPulseEnabled)
+				{
+					_lightPulseTime = fmod(_lightPulseTime + delta, 1.0f / _lightPulseFreq);
+					const float pulseBrightness = sin(_lightPulseTime * _lightPulseFreq * PI * 2.0f) * 0.5f + 0.5f;
+					newBrightness = pulseBrightness * _lightPulseSize + (1.0f - _lightPulseSize);
+				}
+				else
+				{
+					newBrightness = 1.0f;
+				}
 			}
 		}
 
 		// Imitate thermal inertia
-		float changeRatio = MinMax(0.0f, 1.0f, delta * _lightChangeSpeed);
+		const float changeRatio = MinMax(0.0f, 1.0f, delta * _lightChangeSpeed);
 		_lightBrightness = (changeRatio * newBrightness) + ((1.0f - changeRatio) * _lightBrightness);
 
 		analogWrite(_pinLight, 255 - (int)(_lightBrightness * _lightMaxBrightness * 255.0f));
 	}
+}
+
+void VbsBigRedButton::triggerFeedbackFlash()
+{
+	_lightFeedbackFlashRunning = true;
+	_lightFeedbackFlashTime = 0;
 }
 
 void VbsBigRedButton::SetLongPressTime(const int ms)
@@ -132,6 +167,11 @@ void VbsBigRedButton::SetLightChangeSpeed(const float speed)
 	_lightChangeSpeed = MinMax(0.1f, 10000.0f, speed);
 }
 
+void VbsBigRedButton::SetLightFeedbackFlashSpeed(const int ms)
+{
+	_lightFeedbackFlashSpeed = MinMax(1, 10000, ms);
+}
+
 void VbsBigRedButton::SetLightMaxBrightness(const float brightness)
 {
 	_lightMaxBrightness = MinMax(0.0f, 1.0f, brightness);
@@ -146,7 +186,7 @@ void VbsBigRedButton::SetLightPulse(const float frequency, const float size)
 
 int VbsBigRedButton::GetProgramIndex()
 {
-	int newProgramIndex = readProgramSwitch();
+	const int newProgramIndex = readProgramSwitch();
 	if (_programIndex != newProgramIndex)
 	{
 		_programIndex = newProgramIndex;
@@ -160,15 +200,19 @@ int VbsBigRedButton::GetProgramIndex()
 
 void VbsBigRedButton::KeepLightLit(const bool lit)
 {
+	if (_lightKeepLit != lit)
+	{
+		_lightPulseTime = 0.0f;
+	}
 	_lightKeepLit = lit;
 }
 
 VbsSingleButtonEvent VbsBigRedButton::PollSingleButtonEvent()
 {
-	bool buttonState = readButton();
+	VbsSingleButtonEvent event;
+	const bool buttonState = readButton();
 	
 	// Normal button press and release, both fired once
-	VbsSingleButtonEvent event;
 	event.Press = buttonState && buttonState != _buttonLastState;
 	event.Release = !buttonState && buttonState != _buttonLastState;
 	_buttonLastState = buttonState;
@@ -179,12 +223,13 @@ VbsSingleButtonEvent VbsBigRedButton::PollSingleButtonEvent()
 
 VbsDualButtonEvent VbsBigRedButton::PollDualButtonEvent()
 {
-	unsigned long timestamp = millis();
-	bool buttonState = readButton();
+	VbsDualButtonEvent event;
+	const unsigned long timestamp = millis();
+	const bool buttonState = readButton();
 	
 	// Normal button press and release, both fired once
-	bool buttonPressed = buttonState && buttonState != _buttonLastState;
-	bool buttonReleased = !buttonState && buttonState != _buttonLastState;
+	const bool buttonPressed = buttonState && buttonState != _buttonLastState;
+	const bool buttonReleased = !buttonState && buttonState != _buttonLastState;
 	_buttonLastState = buttonState;
 	
 	// Button holding started
@@ -195,19 +240,20 @@ VbsDualButtonEvent VbsBigRedButton::PollDualButtonEvent()
 	}
 	
 	// Short release event, only if released before long press
-	bool buttonShortReleased = buttonReleased && !_longPressFired;
+	event.Click = buttonReleased && !_longPressFired;
+	if (event.Click && _lightKeepLit)
+	{
+		triggerFeedbackFlash();
+	}
 	
 	// Long press event, fires once while pressed if button is held for some time
 	// (release will not trigger short release event if long press has fired)
-	bool buttonLongPressed = !_longPressFired && buttonState && _longPressStarted + _longPressTime < millis();
-	if (buttonLongPressed)
+	event.LongPress = !_longPressFired && buttonState && _longPressStarted + _longPressTime < timestamp;
+	if (event.LongPress)
 	{
 		_longPressFired = true;
+		triggerFeedbackFlash();
 	}
-	
-	VbsDualButtonEvent event;
-	event.Click = buttonShortReleased;
-	event.LongPress = buttonLongPressed;
 	
 	updateLight();
 	return event;
@@ -215,12 +261,13 @@ VbsDualButtonEvent VbsBigRedButton::PollDualButtonEvent()
 
 VbsQuadButtonEvent VbsBigRedButton::PollQuadButtonEvent()
 {
-	unsigned long timestamp = millis();
-	bool buttonState = readButton();
+	VbsQuadButtonEvent event;
+	const unsigned long timestamp = millis();
+	const bool buttonState = readButton();
 	
 	// Normal button press and release, both fired once
-	bool buttonPressed = buttonState && buttonState != _buttonLastState;
-	bool buttonReleased = !buttonState && buttonState != _buttonLastState;
+	const bool buttonPressed = buttonState && buttonState != _buttonLastState;
+	const bool buttonReleased = !buttonState && buttonState != _buttonLastState;
 	_buttonLastState = buttonState;
 	
 	// Button holding started
@@ -232,27 +279,28 @@ VbsQuadButtonEvent VbsBigRedButton::PollQuadButtonEvent()
 	
 	// Long press event, fires once while pressed if button is held for some time
 	// (release will not trigger short release event if long press has fired)
-	bool buttonLongPressed = !_longPressFired && buttonState && _longPressStarted + _longPressTime < millis();
-	bool buttonLongDoubleClick = false;
+	event.LongPress = !_longPressFired && buttonState && _longPressStarted + _longPressTime < timestamp;
+	event.LongPressDoubleClick = false;
 	
-	if (buttonLongPressed)
+	if (event.LongPress)
 	{
 		_longPressFired = true;
 		_doubleClickInProgress = false;
+		triggerFeedbackFlash();
 		
 		if (_nextReleaseIsDoubleClick)
 		{
-			buttonLongPressed = false;
-			buttonLongDoubleClick = true;
+			event.LongPress = false;
+			event.LongPressDoubleClick = true;
 		}
 	}
 	
 	// Single/double click
-	bool buttonSingleClick = false;
-	bool buttonDoubleClick = false;
+	event.SingleClick = false;
+	event.DoubleClick = false;
 	
-	unsigned long doubleClickDelta = timestamp - _doubleClickStarted;
-	bool withinDoubleClickTime = doubleClickDelta <= _doubleClickTime;
+	const unsigned long doubleClickDelta = timestamp - _doubleClickStarted;
+	const bool withinDoubleClickTime = doubleClickDelta <= _doubleClickTime;
 
 	if (_doubleClickInProgress)
 	{
@@ -260,7 +308,7 @@ VbsQuadButtonEvent VbsBigRedButton::PollQuadButtonEvent()
 		{
 			if (buttonPressed)
 			{
-				// mark double click
+				// Mark double click
 				_nextReleaseIsDoubleClick = true;
 			}
 		}
@@ -268,9 +316,14 @@ VbsQuadButtonEvent VbsBigRedButton::PollQuadButtonEvent()
 		{
 			if (!buttonState && !_nextReleaseIsDoubleClick)
 			{
-				// single click
-				buttonSingleClick = true;
+				// Single click
+				event.SingleClick = true;
 				_doubleClickInProgress = false;
+				
+				if (_lightKeepLit)
+				{
+					triggerFeedbackFlash();
+				}
 			}
 		}
 	}
@@ -286,16 +339,15 @@ VbsQuadButtonEvent VbsBigRedButton::PollQuadButtonEvent()
 
 	if (_doubleClickInProgress && buttonReleased && _nextReleaseIsDoubleClick)
 	{
-		// double click
-		buttonDoubleClick = true;
+		// Double click
+		event.DoubleClick = true;
 		_doubleClickInProgress = false;
+		
+		if (_lightKeepLit)
+		{
+			triggerFeedbackFlash();
+		}
 	}
-	
-	VbsQuadButtonEvent event;
-	event.SingleClick = buttonSingleClick;
-	event.DoubleClick = buttonDoubleClick;
-	event.LongPress = buttonLongPressed;
-	event.LongPressDoubleClick = buttonLongDoubleClick;
 	
 	updateLight();
 	return event;

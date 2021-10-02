@@ -52,6 +52,9 @@ void setup()
     
     // Speed of the LED brightness transition, bigger value -> faster transition.
     BigRedButton.SetLightChangeSpeed(25.0f);
+
+    // Length of feedback flash/flicker (in milliseconds). Happens when long press is triggered.
+    BigRedButton.SetLightFeedbackFlashSpeed(150);
     
     // LED maximum brightness (float value between 0.0f and 1.0f).
     BigRedButton.SetLightMaxBrightness(1.0f);
@@ -67,7 +70,7 @@ void setup()
 //
 void loop()
 {
-    // Keep LED lit when Scroll Lock key is active
+    // Keep button lit while Scroll Lock LED is on
     BigRedButton.KeepLightLit(Keyboard.GetLedState(KB_LED_SCROLL_LOCK));
 
     switch (BigRedButton.GetProgramIndex())

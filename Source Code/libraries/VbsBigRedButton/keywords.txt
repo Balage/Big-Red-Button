@@ -15,6 +15,7 @@ BigRedButton	KEYWORD1
 SetLongPressTime	KEYWORD2
 SetDoubleClickTime	KEYWORD2
 SetLightChangeSpeed	KEYWORD2
+SetLightFeedbackFlashSpeed	KEYWORD2
 SetLightMaxBrightness	KEYWORD2
 SetLightPulse	KEYWORD2
 KeepLightLit	KEYWORD2
