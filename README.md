@@ -3,12 +3,12 @@
 
 A big red button with an Arduino Leonardo (MEGA32U4) acting as a keyboard.
 
-This code is an extended version of the Keyboard library already present in the Arduino IDE. What the official version lacks is the support for Page 0x01 keys (like Volume Up/Down, Mute, Sleep, Power Off), and the support for reading LED status.
+This code is an extended version of the Keyboard library already present in the Arduino IDE. What the official version lacks is the support for **Page 0x01** keys (like Volume Up/Down, Mute, Sleep, Power Off), and the support for reading LED status.
 
 The intention with this library was to build a big red button that acts like a keyboard, allowing a software in the background to listen on the pressed keys and do things when that happen. I mainly use it as a party tool to make sound effects, like for a gaming event. I wrote an app for this specific purpose, and it's also publicly available: [https://vbstudio.hu/apps/vasparittya](https://vbstudio.hu/apps/vasparittya).
 
 You can also use it to...
-- Trigger stuff that otherwise require multiple keys pressed simultaneously, like taking screenshots and recording video with *Xbox Game Bar* or *GeForce Experience* (see "[More use-case examples](#more-use-case-examples)" below).
+- Trigger stuff that otherwise require multiple keys pressed simultaneously, like taking screenshots and recording video with ***Xbox Game Bar*** or ***GeForce Experience*** (see "[More use-case examples](#more-use-case-examples)" below).
 - Host quiz shows, given you have more than one button. This would require a listener app that can tell who pressed their button first.
 - Program macros.
 
@@ -16,19 +16,19 @@ To read about the hardware part of the project, visit my [article](https://vbstu
 
 ## How to install code
 - Download and install the [Arduino IDE](https://www.arduino.cc/en/software).
-- The Arduino IDE by default stores all Sketches in a folder named "Arduino" in your Documents folder.
-- Download the repository and copy everything from the "Source Code" folder to there.
-	- It might ask whether you want to merge the "libraries" folder with the new one, choose yes.
-- Start the Arduino IDE and select "File", "Sketches", and then choose "BigRedButton" from the list.
+- The Arduino IDE by default stores all Sketches in a folder named **"Arduino"** in your **Documents** folder.
+- Download the repository and copy everything from the **"Source Code"** folder to there.
+	- It might ask whether you want to merge the **"libraries"** folder with the new one, choose yes.
+- Start the Arduino IDE and select **"File"**, **"Sketches"**, and then choose **"BigRedButton"** from the list.
 
 This sketch file contains all the relevant part to change and tweak behavior or switch I/O pins. The "under the hood" parts are located in the C++ classes under the "libraries" folder.
 
 ## Build and upload sketch
-- After the Leonardo board is plugged in, go to "Tools", "Board", then select "Arduino Leonardo".
-- Go to "Tools", "Port", and select the port that looks like "COM# (Arduino Leonardo)".
-- Press and hold the reset button on the Leonardo board. (Add one if it does not have it)
-- Start Upload.
-- As soon as the console at the bottom says "Uploading...", release the reset button.
+- After the Leonardo board is plugged in, go to **"Tools"**, **"Board"**, then select **"Arduino Leonardo"**.
+- Go to **"Tools"** again, then **"Port"**, and select the port that looks like **"COM# (Arduino Leonardo)"**.
+- Press and **hold the reset button** on the Leonardo board. (Add one if it does not have it)
+- **Start Upload** with the right-arrow icon on the menu bar.
+- As soon as the console at the bottom says **"Uploading..."**, release the reset button.
 - It should finish in a few seconds, and then done.
 
 ## Changing keys
