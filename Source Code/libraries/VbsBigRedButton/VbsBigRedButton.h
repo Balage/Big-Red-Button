@@ -50,71 +50,71 @@ struct VbsQuadButtonEvent
 class VbsBigRedButton
 {
 private:
-	enum LightOverride
-	{
-		LIGHT_FREE = 0,
-		LIGHT_ON = 1,
-		LIGHT_OFF = 2
-	};
-	
-	// PINS
-	const uint8_t _pinButton;
-	const uint8_t _pinLight;
-	const uint8_t _pinSwitch1;
-	const uint8_t _pinSwitch2;
-	
-	// CONFIG
-	int _longPressTime = 700;
-	int _doubleClickTime = 400;
-	float _lightChangeSpeed = 25.0f; // (bigger value -> faster transition)
-	int _lightFeedbackFlashSpeed = 150;
-	float _lightMaxBrightness = 1.0f;
-	bool _lightPulseEnabled = true;
-	float _lightPulseFreq = 0.5f; // Hz
-	float _lightPulseSize = 0.1; // %
-	
-	// STATE
-	int _programIndex;
-	
-	bool _buttonLastState;
-	unsigned long _longPressStarted;
-	unsigned long _doubleClickStarted;
-	bool _doubleClickInProgress;
-	bool _nextReleaseIsDoubleClick;
-	bool _longPressFired;
-	
-	bool _lightKeepLit = false;
-	bool _lightFeedbackFlashRunning = false;
-	unsigned long _lightFeedbackFlashTime = 0;
-	LightOverride _lightOverride = LIGHT_FREE;
-	float _lightBrightness = 0.0f;
-	float _lightPulseTime = 0.0f;
-	unsigned long _lastTimestamp = 0;
-	
-	// FUNCTIONS
-	int readProgramSwitch() const;
-	bool readButton() const;
-	
-	void resetButtonState();
-	void updateLight();
-	void triggerFeedbackFlash();
-	
+    enum LightOverride
+    {
+        LIGHT_FREE = 0,
+        LIGHT_ON = 1,
+        LIGHT_OFF = 2
+    };
+    
+    // PINS
+    const uint8_t _pinButton;
+    const uint8_t _pinLight;
+    const uint8_t _pinSwitch1;
+    const uint8_t _pinSwitch2;
+    
+    // CONFIG
+    int _longPressTime = 700;
+    int _doubleClickTime = 400;
+    float _lightChangeSpeed = 25.0f; // (bigger value -> faster transition)
+    int _lightFeedbackFlashSpeed = 150;
+    float _lightMaxBrightness = 1.0f;
+    bool _lightPulseEnabled = true;
+    float _lightPulseFreq = 0.5f; // Hz
+    float _lightPulseSize = 0.1; // %
+    
+    // STATE
+    int _programIndex;
+    
+    bool _buttonLastState;
+    unsigned long _longPressStarted;
+    unsigned long _doubleClickStarted;
+    bool _doubleClickInProgress;
+    bool _nextReleaseIsDoubleClick;
+    bool _longPressFired;
+    
+    bool _lightKeepLit = false;
+    bool _lightFeedbackFlashRunning = false;
+    unsigned long _lightFeedbackFlashTime = 0;
+    LightOverride _lightOverride = LIGHT_FREE;
+    float _lightBrightness = 0.0f;
+    float _lightPulseTime = 0.0f;
+    unsigned long _lastTimestamp = 0;
+    
+    // FUNCTIONS
+    int readProgramSwitch() const;
+    bool readButton() const;
+    
+    void resetButtonState();
+    void updateLight();
+    void triggerFeedbackFlash();
+    
 public:
-	VbsBigRedButton(const uint8_t pinButton, const uint8_t pinLight, const uint8_t pinSwitch1, const uint8_t pinSwitch2);
-	
-	void SetLongPressTime(const int ms);
-	void SetDoubleClickTime(const int ms);
-	void SetLightChangeSpeed(const float speed);
-	void SetLightFeedbackFlashSpeed(const int ms);
-	void SetLightMaxBrightness(const float brightness);
-	void SetLightPulse(const float frequency, const float size = 0.1f);
-	
-	void KeepLightLit(const bool lit);
-	
-	int GetProgramIndex();
-	VbsSingleButtonEvent PollSingleButtonEvent();
-	VbsDualButtonEvent PollDualButtonEvent();
-	VbsQuadButtonEvent PollQuadButtonEvent();
+    VbsBigRedButton(const uint8_t pinButton, const uint8_t pinLight, const uint8_t pinSwitch1, const uint8_t pinSwitch2);
+    
+    void SetLongPressTime(const int ms);
+    void SetDoubleClickTime(const int ms);
+    void SetLightChangeSpeed(const float speed);
+    void SetLightFeedbackFlashSpeed(const int ms);
+    void SetLightMaxBrightness(const float brightness);
+    void SetLightPulse(const float frequency, const float size = 0.1f);
+    
+    void KeepLightLit(const bool lit);
+    
+    int GetProgramIndex();
+    VbsSingleButtonEvent PollSingleButtonEvent();
+    VbsDualButtonEvent PollDualButtonEvent();
+    VbsQuadButtonEvent PollQuadButtonEvent();
 };
 
 #endif

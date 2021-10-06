@@ -1,24 +1,24 @@
 /*
-  VbsKeyboard.h
-  
-  Copyright (c) 2020, Balazs Vecsey, www.vbstudio.hu
-  
-  This is a merged, modified and extended version of the Keyboard.h
-  and HID.h from the official Arduino library, version 1.8.12.
-  Original copyright is as follows:
-
-  Copyright (c) 2015, Arduino LLC
-  Original code (pre-library): Copyright (c) 2011, Peter Barrett
-
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
+    VbsKeyboard.h
+    
+    Copyright (c) 2020, Balazs Vecsey, www.vbstudio.hu
+    
+    This is a merged, modified and extended version of the Keyboard.h
+    and HID.h from the official Arduino library, version 1.8.12.
+    Original copyright is as follows:
+    
+    Copyright (c) 2015, Arduino LLC
+    Original code (pre-library): Copyright (c) 2011, Peter Barrett
+    
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+    
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
 */
 
 #ifndef VBS_KEYBOARD_h
@@ -67,31 +67,31 @@
 
 typedef struct
 {
-	uint8_t len;      // 9
-	uint8_t dtype;    // 0x21
-	uint8_t addr;
-	uint8_t versionL; // 0x101
-	uint8_t versionH; // 0x101
-	uint8_t country;
-	uint8_t desctype; // 0x22 report
-	uint8_t descLenL;
-	uint8_t descLenH;
+    uint8_t len;      // 9
+    uint8_t dtype;    // 0x21
+    uint8_t addr;
+    uint8_t versionL; // 0x101
+    uint8_t versionH; // 0x101
+    uint8_t country;
+    uint8_t desctype; // 0x22 report
+    uint8_t descLenL;
+    uint8_t descLenH;
 } HIDDescDescriptor;
 
 typedef struct 
 {
-	InterfaceDescriptor hid;
-	HIDDescDescriptor desc;
-	EndpointDescriptor in;
+    InterfaceDescriptor hid;
+    HIDDescDescriptor desc;
+    EndpointDescriptor in;
 } HIDDescriptor;
 
 class HIDSubDescriptor {
 public:
-	HIDSubDescriptor *next = NULL;
-	HIDSubDescriptor(const void *d, const uint16_t l) : data(d), length(l) { }
+    HIDSubDescriptor *next = NULL;
+    HIDSubDescriptor(const void *d, const uint16_t l) : data(d), length(l) { }
 
-	const void* data;
-	const uint16_t length;
+    const void* data;
+    const uint16_t length;
 };
 
 #define D_HIDREPORT(length) { 9, 0x21, 0x01, 0x01, 0, 1, 0x22, lowByte(length), highByte(length) }
@@ -192,62 +192,62 @@ public:
 // Low level key report: up to 6 keys and shift, ctrl etc at once
 typedef struct
 {
-	uint8_t modifiers;
-	uint8_t reserved;
-	uint8_t keys[6];
+    uint8_t modifiers;
+    uint8_t reserved;
+    uint8_t keys[6];
 } KeyReportPage7;
 
 typedef union {
-	// Every usable Consumer key possible, up to 4 keys presses possible
-	uint8_t whole8[0];
-	uint16_t whole16[0];
-	uint32_t whole32[0];
-	uint16_t keys[4];
+    // Every usable Consumer key possible, up to 4 keys presses possible
+    uint8_t whole8[0];
+    uint16_t whole16[0];
+    uint32_t whole32[0];
+    uint16_t keys[4];
 } KeyReportPage1;
 
 
-class VbsKeyboard_ : public PluggableUSBModule
+class VbsKeyboard : public PluggableUSBModule
 {
 public:
-	VbsKeyboard_(void);
-	
-	// Page 0x01 (Generic Desktop)
-	void PressKeyPage1(uint16_t key);
-	
-	// Page 0x07 (Keyboard/Keypad)
-	void PressKey(uint8_t key, uint8_t modifier = MOD_NONE);
-	void HoldKey(uint8_t key, uint8_t modifier = MOD_NONE);
-	inline void ReleaseKey() { HoldKey(0, 0); }
-	
-	bool GetLedState(uint8_t mask) const;
-	
+    VbsKeyboard(void);
+    
+    // Page 0x01 (Generic Desktop)
+    void PressKeyPage1(uint16_t key);
+    
+    // Page 0x07 (Keyboard/Keypad)
+    void PressKey(uint8_t key, uint8_t modifier = MOD_NONE);
+    void HoldKey(uint8_t key, uint8_t modifier = MOD_NONE);
+    inline void ReleaseKey() { HoldKey(0, 0); }
+    
+    bool GetLedState(uint8_t mask) const;
+    
 protected:
-	// Implementation of the PluggableUSBModule
-	int getInterface(uint8_t* interfaceCount);
-	int getDescriptor(USBSetup& setup);
-	bool setup(USBSetup& setup);
-	uint8_t getShortName(char* name);
-	
+    // Implementation of the PluggableUSBModule
+    int getInterface(uint8_t* interfaceCount);
+    int getDescriptor(USBSetup& setup);
+    bool setup(USBSetup& setup);
+    uint8_t getShortName(char* name);
+    
 private:
-	// HID
-	uint8_t _epType[1];
-	HIDSubDescriptor* _rootNode;
-	uint16_t _descriptorSize;
-	uint8_t _protocol;
-	uint8_t _idle;
-	
-	// Keyboard
-	KeyReportPage1 _keyReportPage1;
-	KeyReportPage7 _keyReportPage7;
-	uint8_t _ledsState;
-	
-	void SendReport(uint8_t id, void* data, int len);
-	
-	void AppendDescriptor(HIDSubDescriptor* node);
+    // HID
+    uint8_t _epType[1];
+    HIDSubDescriptor* _rootNode;
+    uint16_t _descriptorSize;
+    uint8_t _protocol;
+    uint8_t _idle;
+    
+    // Keyboard
+    KeyReportPage1 _keyReportPage1;
+    KeyReportPage7 _keyReportPage7;
+    uint8_t _ledsState;
+    
+    void SendReport(uint8_t id, void* data, int len);
+    
+    void AppendDescriptor(HIDSubDescriptor* node);
 };
 
 // Singleton instance
-extern VbsKeyboard_ Keyboard;
+extern VbsKeyboard Keyboard;
 
 #endif // USBCON
 #endif
